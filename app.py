@@ -103,40 +103,13 @@ class StaffManagementApp(QMainWindow):
         dialog = AddStaffDialog(self.db_manager, self.populate_table)
         dialog.exec()
 
-
     def edit_staff(self):
-        """
-        Opens a dialog to edit staff member's details in the database.
-        """
-        selected_row = self.table.currentRow()
-        if selected_row >= 0:
-            id = int(self.table.item(selected_row, 0).text())
-            name = self.table.item(selected_row, 1).text()
-            mobile = self.table.item(selected_row, 2).text()
-            email = self.table.item(selected_row, 3).text()
-            role = self.table.item(selected_row, 4).text()
-            salary = float(self.table.item(selected_row, 5).text())
-            joining_date = self.table.item(selected_row, 6).text()
-            address = self.table.item(selected_row, 7).text()
-            remark = self.table.item(selected_row, 8).text()
-
-            # Implement logic to open an edit dialog and update staff data
-            # Update the staff record in the database using self.db_manager.execute(...)
-            pass
+        dialog = EditStaffDialog()
+        dialog.exec()
 
     def delete_staff(self):
-        """
-        Deletes the selected staff member from the database.
-        """
-        selected_row = self.table.currentRow()
-        if selected_row >= 0:
-            id = int(self.table.item(selected_row, 0).text())
-
-            # Implement logic to delete staff record from the database
-            # Delete the staff record using self.db_manager.execute(...)
-            self.db_manager.execute("DELETE FROM staff WHERE id = ?", (id,))
-            self.db_manager.connection.commit()
-            self.populate_table()
+        dialog = DeleteStaffDialog()
+        dialog.exec()
 
     def search_staff(self):
         """
@@ -186,7 +159,7 @@ class AddStaffDialog(QDialog):
         self.setWindowTitle("Add New Staff Details")
         self.setFixedSize(400, 500)
 
-        self.add_staff_layout = QVBoxLayout()
+        add_staff_layout = QVBoxLayout()
 
         self.name_label = QLabel("Name:")
         self.name_input = QLineEdit()
@@ -212,28 +185,28 @@ class AddStaffDialog(QDialog):
         self.remark_label = QLabel("Remark:")
         self.remark_input = QLineEdit()
 
-        self.submit_button = QPushButton("Submit")
-        self.submit_button.clicked.connect(self.add_new_staff)
+        submit_button = QPushButton("Submit")
+        submit_button.clicked.connect(self.add_new_staff)
 
-        self.add_staff_layout.addWidget(self.name_label)
-        self.add_staff_layout.addWidget(self.name_input)
-        self.add_staff_layout.addWidget(self.mobile_label)
-        self.add_staff_layout.addWidget(self.mobile_input)
-        self.add_staff_layout.addWidget(self.email_label)
-        self.add_staff_layout.addWidget(self.email_input)
-        self.add_staff_layout.addWidget(self.role_label)
-        self.add_staff_layout.addWidget(self.role_input)
-        self.add_staff_layout.addWidget(self.salary_label)
-        self.add_staff_layout.addWidget(self.salary_input)
-        self.add_staff_layout.addWidget(self.joining_date_label)
-        self.add_staff_layout.addWidget(self.joining_date_input)
-        self.add_staff_layout.addWidget(self.address_label)
-        self.add_staff_layout.addWidget(self.address_input)
-        self.add_staff_layout.addWidget(self.remark_label)
-        self.add_staff_layout.addWidget(self.remark_input)
-        self.add_staff_layout.addWidget(self.submit_button)
+        add_staff_layout.addWidget(self.name_label)
+        add_staff_layout.addWidget(self.name_input)
+        add_staff_layout.addWidget(self.mobile_label)
+        add_staff_layout.addWidget(self.mobile_input)
+        add_staff_layout.addWidget(self.email_label)
+        add_staff_layout.addWidget(self.email_input)
+        add_staff_layout.addWidget(self.role_label)
+        add_staff_layout.addWidget(self.role_input)
+        add_staff_layout.addWidget(self.salary_label)
+        add_staff_layout.addWidget(self.salary_input)
+        add_staff_layout.addWidget(self.joining_date_label)
+        add_staff_layout.addWidget(self.joining_date_input)
+        add_staff_layout.addWidget(self.address_label)
+        add_staff_layout.addWidget(self.address_input)
+        add_staff_layout.addWidget(self.remark_label)
+        add_staff_layout.addWidget(self.remark_input)
+        add_staff_layout.addWidget(submit_button)
 
-        self.setLayout(self.add_staff_layout)
+        self.setLayout(add_staff_layout)
 
     def add_new_staff(self):
         """
@@ -256,6 +229,104 @@ class AddStaffDialog(QDialog):
         self.populate_table()  # Update the table in the main window
 
         self.accept()
+
+
+class EditStaffDialog(QDialog):
+    """
+    Opens a dialog to edit staff member's details in the database.
+    """
+    def __init__(self):
+        super().__init__()
+
+        # Set the title and fixed size of the dialog
+        self.setWindowTitle("Update the Staff Records")
+        self.setFixedSize(400, 500)
+
+        # Create a layout for the dialog
+        edit_staff_layout = QVBoxLayout()
+
+        # Get the selected row index
+        index = window.table.currentRow()
+
+        # Get the selected id
+        self.staff_id = window.table.item(index, 0).text()
+
+        # Get the current selected staff name
+        selected_name = window.table.item(index, 1).text()
+        self.name = QLineEdit(selected_name)
+        self.name.setPlaceholderText("Name")
+        edit_staff_layout.addWidget(self.name)
+
+        # Get the current selected staff mobile number
+        selected_mobile = window.table.item(index, 2).text()
+        self.mobile = QLineEdit(selected_mobile)
+        self.mobile.setPlaceholderText("Mobile No.")
+        edit_staff_layout.addWidget(self.mobile)
+
+        # Get the current selected staff email
+        selected_email = window.table.item(index, 3).text()
+        self.email = QLineEdit(selected_email)
+        self.email.setPlaceholderText("Email ID")
+        edit_staff_layout.addWidget(self.email)
+
+        # Get the current selected staff job role
+        selected_role = window.table.item(index, 4).text()
+        self.role = QLineEdit(selected_role)
+        self.role.setPlaceholderText("Job Role")
+        edit_staff_layout.addWidget(self.role)
+
+        # Get the current selected staff salary
+        selected_salary = window.table.item(index, 5).text()
+        self.salary = QLineEdit(selected_salary)
+        self.salary.setPlaceholderText("Salary")
+        edit_staff_layout.addWidget(self.salary)
+
+        # Get the current selected staff joining date
+        selected_joining_date = window.table.item(index, 6).text()
+        self.joining_date = QLineEdit(selected_joining_date)
+        self.joining_date.setPlaceholderText("Joining Date")
+        edit_staff_layout.addWidget(self.joining_date)
+
+        # Get the current selected staff address
+        selected_address = window.table.item(index, 7).text()
+        self.address = QLineEdit(selected_address)
+        self.address.setPlaceholderText("Address")
+        edit_staff_layout.addWidget(self.address)
+
+        # Get the current selected staff remark
+        selected_remark = window.table.item(index, 8).text()
+        self.remark = QLineEdit(selected_remark)
+        self.remark.setPlaceholderText("Remark")
+        edit_staff_layout.addWidget(self.remark)
+
+        # Create an "Update" button and connect it to the update_staff_records method
+        update_button = QPushButton("Update")
+        update_button.clicked.connect(self.update_staff_records)
+        edit_staff_layout.addWidget(update_button)
+
+        # Set the layout for the dialog
+        self.setLayout(edit_staff_layout)
+
+    def update_staff_records(self):
+        pass
+
+
+class DeleteStaffDialog(QDialog):
+    """
+    Deletes the selected staff member from the database.
+    """
+    def __init__(self):
+        super().__init__()
+
+        selected_row = self.table.currentRow()
+        if selected_row >= 0:
+            id = int(self.table.item(selected_row, 0).text())
+
+            # Implement logic to delete staff record from the database
+            # Delete the staff record using self.db_manager.execute(...)
+            self.db_manager.execute("DELETE FROM staff WHERE id = ?", (id,))
+            self.db_manager.connection.commit()
+            self.populate_table()
 
 
 if __name__ == "__main__":
