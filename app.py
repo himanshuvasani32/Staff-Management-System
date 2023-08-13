@@ -64,6 +64,9 @@ class StaffManagementApp(QMainWindow):
         self.table.setHorizontalHeaderLabels(
             ["ID", "Name", "Mobile", "Email", "Role", "Salary", "Joining Date", "Address", "Remark"])
 
+        # Create a list to store main table data
+        self.main_data_list = []
+
         # Populate the table with staff data from the database
         self.populate_table()
 
@@ -115,19 +118,28 @@ class StaffManagementApp(QMainWindow):
             self.populate_table()  # Update the table after adding
 
     def search_staff(self):
-        dialog = SearchStaffDialog(self.db_manager, self.populate_table)
+        dialog = SearchStaffDialog(self.db_manager, self.populate_table, self)
         if dialog.exec() == QDialog.accepted:
             self.populate_table()
 
-    def populate_table(self, data=None):
+    def open_search_dialog(self):
+        dialog = SearchStaffDialog(self.db_manager, self.populate_table, self)
+        dialog.exec()
+
+    def populate_table(self, data=None, table=None, main_data_list=None):
         """
         Populates the table with provided staff data.
         """
-        self.table.setRowCount(0)  # Clear existing rows
+        if table is None:
+            table = self.table
+            table.setRowCount(0)  # Clear existing rows
+        else:
+            table.setRowCount(0)  # Clear existing rows
 
-        # Check if specific data is provided, otherwise fetch all staff data from the database
+        ## Check if specific data is provided, otherwise fetch all staff data from the database
         if data is None:
             data = self.db_manager.fetch_all("SELECT * FROM staff")
+            self.main_data_list = data  # Store main table data
 
         # Iterate through the data and populate the table rows
         for row_num, (id, name, mobile, email, role, salary, joining_date, address, remark) in enumerate(data):
@@ -141,6 +153,9 @@ class StaffManagementApp(QMainWindow):
             self.table.setItem(row_num, 6, QTableWidgetItem(joining_date))
             self.table.setItem(row_num, 7, QTableWidgetItem(address))
             self.table.setItem(row_num, 8, QTableWidgetItem(remark))
+
+            if main_data_list is not None:
+                main_data_list.append((id, name, mobile, email, role, salary, joining_date, address, remark))
 
 
 class AddStaffDialog(QDialog):
@@ -362,31 +377,95 @@ class SearchStaffDialog(QDialog):
     """
     Searches for staff members based on staff name.
     """
-    def __init__(self, db_manager, populate_table_callback):
-        super().__init__()
+    def __init__(self, db_manager, populate_table_callback, parent_window):
+        super().__init__(parent=parent_window)
 
         self.db_manager = db_manager
         self.populate_table = populate_table_callback
+        self.parent_window = parent_window
 
         self.setWindowTitle("Search Staff Name from the Records")
-        self.setFixedSize(300, 150)
+        self.setFixedSize(600, 400)
 
         search_staff_layout = QVBoxLayout()
 
         self.name = QLineEdit()
         self.name.setPlaceholderText("Search with Staff Name...")
-        search_staff_layout.addWidget(self.name)
+        self.name.textChanged.connect(self.perform_search)
 
-        search_button = QPushButton("Search")
-        search_button.clicked.connect(self.search_staff_records)
-        search_staff_layout.addWidget(search_button)
+        self.search_results = QTableWidget()
+        self.search_results.setColumnCount(9)
+        self.search_results.setHorizontalHeaderLabels(
+            ["ID", "Name", "Mobile", "Email", "Role", "Salary", "Joining Date", "Address", "Remark"])
+        self.search_results.setHidden(True)
+
+        self.search_results_main_data = []  # To store main table data corresponding to search results
+        self.search_results.cellDoubleClicked.connect(self.search_results_double_clicked)
+
+        clear_button = QPushButton("Clear Results")
+        clear_button.clicked.connect(self.clear_search_results)
+
+        search_staff_layout.addWidget(self.name)
+        search_staff_layout.addWidget(self.search_results)
+        search_staff_layout.addWidget(clear_button)
 
         self.setLayout(search_staff_layout)
 
-    def search_staff_records(self):
-        # staff_data = self.db_manager.fetch_all("SELECT * FROM staff WHERE role = ?", (role,))
-        # self.populate_table(staff_data)
-        pass
+    def perform_search(self, text):
+        # Clear previous search results
+        self.search_results.setRowCount(0)
+        self.search_results_main_data = []
+
+        # Perform real-time search
+        searched_name = text.strip()  # Remove leading/trailing whitespace
+        if searched_name:
+            staff_data = self.db_manager.fetch_all("SELECT * FROM staff WHERE name LIKE ?", (f"%{searched_name}%",))
+            self.populate_search_table(staff_data)  # Populate search results table
+            self.search_results.setHidden(False)
+        else:
+            self.search_results.setHidden(True)
+
+    def clear_search_results(self):
+        # Clear the search field and results
+        self.name.clear()
+        self.search_results.setRowCount(0)
+        self.search_results.setHidden(True)
+
+    def search_results_double_clicked(self, row, column):
+        # When a search result is double-clicked, get the corresponding row data
+        selected_row_data = self.search_results_main_data[row]
+
+        # Iterate through the main_data_list to find the matching data
+        for idx, row_data in enumerate(self.parent_window.main_data_list):
+            if row_data == selected_row_data:
+                # Select the corresponding row in the main table
+                self.parent_window.table.selectRow(idx)
+                break
+
+        # Close the search dialog
+        self.accept()
+
+    def populate_search_table(self, data):
+        """
+        Populates the search results table with provided staff data.
+        """
+        self.search_results.setRowCount(0)  # Clear existing rows
+
+        for id, name, mobile, email, role, salary, joining_date, address, remark in data:
+            row_num = self.search_results.rowCount()  # Get the next row index
+            self.search_results.insertRow(row_num)
+            self.search_results.setItem(row_num, 0, QTableWidgetItem(str(id)))
+            self.search_results.setItem(row_num, 1, QTableWidgetItem(name))
+            self.search_results.setItem(row_num, 2, QTableWidgetItem(mobile))
+            self.search_results.setItem(row_num, 3, QTableWidgetItem(email))
+            self.search_results.setItem(row_num, 4, QTableWidgetItem(role))
+            self.search_results.setItem(row_num, 5, QTableWidgetItem(str(salary)))
+            self.search_results.setItem(row_num, 6, QTableWidgetItem(joining_date))
+            self.search_results.setItem(row_num, 7, QTableWidgetItem(address))
+            self.search_results.setItem(row_num, 8, QTableWidgetItem(remark))
+
+            # Store the corresponding row number in the main table for each search result
+            self.search_results_main_data.append((id, name, mobile, email, role, salary, joining_date, address, remark))
 
 
 if __name__ == "__main__":
