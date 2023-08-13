@@ -1,7 +1,7 @@
 import sys
 import sqlite3
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
-    QTableWidget, QTableWidgetItem, QComboBox, QLineEdit, QDialog, QGridLayout, QDialogButtonBox
+    QTableWidget, QTableWidgetItem, QComboBox, QLineEdit, QDialog, QGridLayout, QDialogButtonBox, QMessageBox
 
 
 class DatabaseManager:
@@ -220,6 +220,15 @@ class AddStaffDialog(QDialog):
 
         self.setLayout(add_staff_layout)
 
+    def validate_salary(self, salary_text):
+        try:
+            salary = float(salary_text)
+            if salary <= 0:
+                raise ValueError("Salary must be a positive number")
+            return salary
+        except ValueError:
+            return None
+
     def add_new_staff(self):
         """
         Adds the new staff details to the database and updates the table.
@@ -232,6 +241,13 @@ class AddStaffDialog(QDialog):
         joining_date = self.joining_date_input.text()
         address = self.address_input.text()
         remark = self.remark_input.text()
+
+        # Validate salary input
+        salary = self.validate_salary(self.salary_input.text())
+        if salary is None:
+            # Display an error message to the user
+            QMessageBox.critical(self, "Input Error", "Invalid salary input. Please enter a valid positive number.")
+            return
 
         self.db_manager.execute(
             "INSERT INTO staff (name, mobile, email, role, salary, joining_date, address, remark) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -321,10 +337,26 @@ class EditStaffDialog(QDialog):
         # Set the layout for the dialog
         self.setLayout(edit_staff_layout)
 
+    def validate_salary(self, salary_text):
+        try:
+            salary = float(salary_text)
+            if salary <= 0:  # Corrected condition here
+                raise ValueError("Salary must be a positive number")
+            return salary
+        except ValueError:
+            return None
+
     def update_staff_records(self):
         """
         Update the staff records in the database.
         """
+        # Validate salary input
+        salary = self.validate_salary(self.salary.text())
+        if salary is None:
+            # Display an error message to the user
+            QMessageBox.critical(self, "Input Error", "Invalid salary input. Please enter a valid positive number.")
+            return
+
         self.db_manager.execute(
             "UPDATE staff SET name = ?, mobile = ?, email = ?, role = ?, salary = ?, joining_date = ?, address = ?, "
             "remark = ? Where id = ?",
