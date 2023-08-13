@@ -220,6 +220,19 @@ class AddStaffDialog(QDialog):
 
         self.setLayout(add_staff_layout)
 
+    def validate_mobile(self, mobile_text):
+        if not mobile_text.isdigit() or len(mobile_text) != 10:
+            return None
+        return mobile_text
+
+    def validate_email(self, email_text):
+        # Use a basic regular expression for email validation
+        import re
+        pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$"
+        if not re.match(pattern, email_text):
+            return None
+        return email_text
+
     def validate_salary(self, salary_text):
         try:
             salary = float(salary_text)
@@ -241,6 +254,20 @@ class AddStaffDialog(QDialog):
         joining_date = self.joining_date_input.text()
         address = self.address_input.text()
         remark = self.remark_input.text()
+
+        # Validate mobile number input
+        mobile = self.validate_mobile(self.mobile_input.text())
+        if mobile is None:
+            # Display an error message to the user
+            QMessageBox.critical(self, "Input Error", "Invalid mobile number. Please enter a valid 10-digit number.")
+            return
+
+        # Validate email input
+        email = self.validate_email(self.email_input.text())
+        if email is None:
+            # Display an error message to the user
+            QMessageBox.critical(self, "Input Error", "Invalid email address. Please enter a valid email address.")
+            return
 
         # Validate salary input
         salary = self.validate_salary(self.salary_input.text())
@@ -337,6 +364,19 @@ class EditStaffDialog(QDialog):
         # Set the layout for the dialog
         self.setLayout(edit_staff_layout)
 
+    def validate_mobile(self, mobile_text):
+        if not mobile_text.isdigit() or len(mobile_text) != 10:
+            return None
+        return mobile_text
+
+    def validate_email(self, email_text):
+        # Use a basic regular expression for email validation
+        import re
+        pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$"
+        if not re.match(pattern, email_text):
+            return None
+        return email_text
+
     def validate_salary(self, salary_text):
         try:
             salary = float(salary_text)
@@ -350,6 +390,20 @@ class EditStaffDialog(QDialog):
         """
         Update the staff records in the database.
         """
+        # Validate mobile number input
+        mobile = self.validate_mobile(self.mobile.text())
+        if mobile is None:
+            # Display an error message to the user
+            QMessageBox.critical(self, "Input Error", "Invalid mobile number. Please enter a valid 10-digit number.")
+            return
+
+        # Validate email input
+        email = self.validate_email(self.email.text())
+        if email is None:
+            # Display an error message to the user
+            QMessageBox.critical(self, "Input Error", "Invalid email address. Please enter a valid email address.")
+            return
+
         # Validate salary input
         salary = self.validate_salary(self.salary.text())
         if salary is None:
