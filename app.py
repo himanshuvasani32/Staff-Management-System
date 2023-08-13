@@ -1,7 +1,7 @@
 import sys
 import sqlite3
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
-    QTableWidget, QTableWidgetItem, QComboBox, QLineEdit, QDialog
+    QTableWidget, QTableWidgetItem, QComboBox, QLineEdit, QDialog, QGridLayout
 
 
 class DatabaseManager:
@@ -332,6 +332,26 @@ class DeleteStaffDialog(QDialog):
     """
     def __init__(self):
         super().__init__()
+
+        self.setWindowTitle("Delete Staff Record")
+
+        delete_staff_layout = QGridLayout()
+
+        confirmation_message = QLabel("Are you sure want to delete the selected staff record?")
+        yes_button = QPushButton("Yes")
+        no_button = QPushButton("No")
+
+        delete_staff_layout.addWidget(confirmation_message, 0, 0, 1, 2)
+        delete_staff_layout.addWidget(yes_button, 1, 0)
+        delete_staff_layout.addWidget(no_button, 1, 1)
+
+        self.setLayout(delete_staff_layout)
+
+        yes_button.clicked.connect(self.delete_staff_record)
+
+    def delete_staff_record(self):
+        pass
+
 
         selected_row = self.table.currentRow()
         if selected_row >= 0:
