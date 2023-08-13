@@ -108,7 +108,7 @@ class StaffManagementApp(QMainWindow):
         dialog.exec()
 
     def delete_staff(self):
-        dialog = DeleteStaffDialog()
+        dialog = DeleteStaffDialog(self.db_manager, self.populate_table)
         dialog.exec()
 
     def search_staff(self):
@@ -330,8 +330,11 @@ class DeleteStaffDialog(QDialog):
     """
     Deletes the selected staff member from the database.
     """
-    def __init__(self):
+    def __init__(self, db_manager, populate_table_callback):
         super().__init__()
+
+        self.db_manager = db_manager
+        self.populate_table = populate_table_callback
 
         self.setWindowTitle("Delete Staff Record")
 
@@ -350,18 +353,16 @@ class DeleteStaffDialog(QDialog):
         yes_button.clicked.connect(self.delete_staff_record)
 
     def delete_staff_record(self):
-        pass
+        # Get the current selected index
+        index = window.table.currentRow()
+        staff_id = window.table.item(index, 0).text()
 
+        # Delete the staff record using self.db_manager.execute
+        self.db_manager.execute("DELETE FROM staff WHERE id = ?", (staff_id,))
+        self.db_manager.connection.commit()
+        self.populate_table()
 
-        selected_row = self.table.currentRow()
-        if selected_row >= 0:
-            id = int(self.table.item(selected_row, 0).text())
-
-            # Implement logic to delete staff record from the database
-            # Delete the staff record using self.db_manager.execute(...)
-            self.db_manager.execute("DELETE FROM staff WHERE id = ?", (id,))
-            self.db_manager.connection.commit()
-            self.populate_table()
+        self.accept()
 
 
 if __name__ == "__main__":
