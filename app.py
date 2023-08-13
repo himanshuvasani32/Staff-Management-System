@@ -104,7 +104,7 @@ class StaffManagementApp(QMainWindow):
         dialog.exec()
 
     def edit_staff(self):
-        dialog = EditStaffDialog()
+        dialog = EditStaffDialog(self.db_manager, self.populate_table)
         dialog.exec()
 
     def delete_staff(self):
@@ -235,8 +235,11 @@ class EditStaffDialog(QDialog):
     """
     Opens a dialog to edit staff member's details in the database.
     """
-    def __init__(self):
+    def __init__(self, db_manager, populate_table_callback):
         super().__init__()
+
+        self.db_manager = db_manager
+        self.populate_table = populate_table_callback
 
         # Set the title and fixed size of the dialog
         self.setWindowTitle("Update the Staff Records")
@@ -308,7 +311,19 @@ class EditStaffDialog(QDialog):
         self.setLayout(edit_staff_layout)
 
     def update_staff_records(self):
-        pass
+        """
+        Update the staff records in the database.
+        """
+        self.db_manager.execute(
+            "UPDATE staff SET name = ?, mobile = ?, email = ?, role = ?, salary = ?, joining_date = ?, address = ?, "
+            "remark = ? Where id = ?",
+            (self.name.text(), self.mobile.text(), self.email.text(), self.role.text(), self.salary.text(),
+             self.joining_date.text(), self.address.text(), self.remark.text(), self.staff_id)
+        )
+        self.db_manager.connection.commit()
+        self.populate_table()
+
+        self.accept()
 
 
 class DeleteStaffDialog(QDialog):
