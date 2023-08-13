@@ -120,7 +120,7 @@ class StaffManagementApp(QMainWindow):
             address = self.table.item(selected_row, 7).text()
             remark = self.table.item(selected_row, 8).text()
 
-            # TODO: Implement logic to open an edit dialog and update staff data
+            # Implement logic to open an edit dialog and update staff data
             # Update the staff record in the database using self.db_manager.execute(...)
             pass
 
@@ -132,7 +132,7 @@ class StaffManagementApp(QMainWindow):
         if selected_row >= 0:
             id = int(self.table.item(selected_row, 0).text())
 
-            # TODO: Implement logic to delete staff record from the database
+            # Implement logic to delete staff record from the database
             # Delete the staff record using self.db_manager.execute(...)
             self.db_manager.execute("DELETE FROM staff WHERE id = ?", (id,))
             self.db_manager.connection.commit()
