@@ -1,7 +1,7 @@
 import sys
 import sqlite3
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
-    QTableWidget, QTableWidgetItem, QComboBox, QLineEdit, QDialog, QGridLayout
+    QTableWidget, QTableWidgetItem, QComboBox, QLineEdit, QDialog, QGridLayout, QDialogButtonBox
 
 
 class DatabaseManager:
@@ -73,11 +73,11 @@ class StaffManagementApp(QMainWindow):
         self.add_button = QPushButton("Add Staff")
         self.edit_button = QPushButton("Edit Staff")
         self.delete_button = QPushButton("Delete Staff")
-        self.search_label = QLabel("Search by Role:")
-        self.search_combo = QComboBox()
-        self.search_combo.addItem("All")
-        self.search_combo.addItem("Manager")
-        self.search_combo.addItem("Employee")
+        # self.search_label = QLabel("Search by Role:")
+        # self.search_combo = QComboBox()
+        # self.search_combo.addItem("All")
+        # self.search_combo.addItem("Manager")
+        # self.search_combo.addItem("Employee")
         self.search_button = QPushButton("Search")
 
         # Connect button clicks to their respective methods
@@ -91,8 +91,8 @@ class StaffManagementApp(QMainWindow):
         button_layout.addWidget(self.add_button)
         button_layout.addWidget(self.edit_button)
         button_layout.addWidget(self.delete_button)
-        button_layout.addWidget(self.search_label)
-        button_layout.addWidget(self.search_combo)
+        # button_layout.addWidget(self.search_label)
+        # button_layout.addWidget(self.search_combo)
         button_layout.addWidget(self.search_button)
 
         self.layout.addLayout(button_layout)
@@ -101,26 +101,23 @@ class StaffManagementApp(QMainWindow):
 
     def add_staff(self):
         dialog = AddStaffDialog(self.db_manager, self.populate_table)
-        dialog.exec()
+        if dialog.exec() == QDialog.accepted:
+            self.populate_table()  # Update the table after adding
 
     def edit_staff(self):
         dialog = EditStaffDialog(self.db_manager, self.populate_table)
-        dialog.exec()
+        if dialog.exec() == QDialog.accepted:
+            self.populate_table()  # Update the table after adding
 
     def delete_staff(self):
         dialog = DeleteStaffDialog(self.db_manager, self.populate_table)
-        dialog.exec()
+        if dialog.exec() == QDialog.accepted:
+            self.populate_table()  # Update the table after adding
 
     def search_staff(self):
-        """
-        Searches for staff members based on selected role.
-        """
-        role = self.search_combo.currentText()
-        if role == "All":
-            self.populate_table()  # Show all staff
-        else:
-            staff_data = self.db_manager.fetch_all("SELECT * FROM staff WHERE role = ?", (role,))
-            self.populate_table(staff_data)
+        dialog = SearchStaffDialog(self.db_manager, self.populate_table)
+        if dialog.exec() == QDialog.accepted:
+            self.populate_table()
 
     def populate_table(self, data=None):
         """
@@ -227,7 +224,6 @@ class AddStaffDialog(QDialog):
         )
         self.db_manager.connection.commit()
         self.populate_table()  # Update the table in the main window
-
         self.accept()
 
 
@@ -322,7 +318,6 @@ class EditStaffDialog(QDialog):
         )
         self.db_manager.connection.commit()
         self.populate_table()
-
         self.accept()
 
 
@@ -341,16 +336,15 @@ class DeleteStaffDialog(QDialog):
         delete_staff_layout = QGridLayout()
 
         confirmation_message = QLabel("Are you sure want to delete the selected staff record?")
-        yes_button = QPushButton("Yes")
-        no_button = QPushButton("No")
+
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Yes | QDialogButtonBox.StandardButton.No)
+        button_box.accepted.connect(self.delete_staff_record)
+        button_box.rejected.connect(self.reject)
 
         delete_staff_layout.addWidget(confirmation_message, 0, 0, 1, 2)
-        delete_staff_layout.addWidget(yes_button, 1, 0)
-        delete_staff_layout.addWidget(no_button, 1, 1)
+        delete_staff_layout.addWidget(button_box, 1, 0, 1, 2)
 
         self.setLayout(delete_staff_layout)
-
-        yes_button.clicked.connect(self.delete_staff_record)
 
     def delete_staff_record(self):
         # Get the current selected index
@@ -361,8 +355,38 @@ class DeleteStaffDialog(QDialog):
         self.db_manager.execute("DELETE FROM staff WHERE id = ?", (staff_id,))
         self.db_manager.connection.commit()
         self.populate_table()
-
         self.accept()
+
+
+class SearchStaffDialog(QDialog):
+    """
+    Searches for staff members based on staff name.
+    """
+    def __init__(self, db_manager, populate_table_callback):
+        super().__init__()
+
+        self.db_manager = db_manager
+        self.populate_table = populate_table_callback
+
+        self.setWindowTitle("Search Staff Name from the Records")
+        self.setFixedSize(300, 150)
+
+        search_staff_layout = QVBoxLayout()
+
+        self.name = QLineEdit()
+        self.name.setPlaceholderText("Search with Staff Name...")
+        search_staff_layout.addWidget(self.name)
+
+        search_button = QPushButton("Search")
+        search_button.clicked.connect(self.search_staff_records)
+        search_staff_layout.addWidget(search_button)
+
+        self.setLayout(search_staff_layout)
+
+    def search_staff_records(self):
+        # staff_data = self.db_manager.fetch_all("SELECT * FROM staff WHERE role = ?", (role,))
+        # self.populate_table(staff_data)
+        pass
 
 
 if __name__ == "__main__":
