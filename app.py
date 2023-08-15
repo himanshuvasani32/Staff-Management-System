@@ -1,7 +1,9 @@
 import sys
 import sqlite3
+
+from PyQt6.QtCore import QDate
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
-    QTableWidget, QTableWidgetItem, QComboBox, QLineEdit, QDialog, QGridLayout, QDialogButtonBox, QMessageBox
+    QTableWidget, QTableWidgetItem, QComboBox, QLineEdit, QDialog, QGridLayout, QDialogButtonBox, QMessageBox, QDateEdit
 
 
 class DatabaseManager:
@@ -136,7 +138,7 @@ class StaffManagementApp(QMainWindow):
         else:
             table.setRowCount(0)  # Clear existing rows
 
-        ## Check if specific data is provided, otherwise fetch all staff data from the database
+        # Check if specific data is provided, otherwise fetch all staff data from the database
         if data is None:
             data = self.db_manager.fetch_all("SELECT * FROM staff")
             self.main_data_list = data  # Store main table data
@@ -188,8 +190,11 @@ class AddStaffDialog(QDialog):
         self.salary_label = QLabel("Salary:")
         self.salary_input = QLineEdit()
 
+        current_date = QDate.currentDate()
         self.joining_date_label = QLabel("Joining Date:")
-        self.joining_date_input = QLineEdit()
+        self.joining_date_input = QDateEdit(current_date) # Set the current date as the default value
+        self.joining_date_input.setMinimumDate(current_date) # Set the minimum date to the current date
+        self.joining_date_input.setCalendarPopup(True)
 
         self.address_label = QLabel("Address:")
         self.address_input = QLineEdit()
@@ -251,7 +256,7 @@ class AddStaffDialog(QDialog):
         email = self.email_input.text()
         role = self.role_input.text()
         salary = self.salary_input.text()
-        joining_date = self.joining_date_input.text()
+        joining_date = self.joining_date_input.date().toString("dd-MM-yyyy")
         address = self.address_input.text()
         remark = self.remark_input.text()
 
@@ -340,8 +345,9 @@ class EditStaffDialog(QDialog):
 
         # Get the current selected staff joining date
         selected_joining_date = window.table.item(index, 6).text()
-        self.joining_date = QLineEdit(selected_joining_date)
-        self.joining_date.setPlaceholderText("Joining Date")
+        qdate = QDate.fromString(selected_joining_date, "dd-MM-yyyy")
+        self.joining_date = QDateEdit(qdate)
+        self.joining_date.setCalendarPopup(True)
         edit_staff_layout.addWidget(self.joining_date)
 
         # Get the current selected staff address
@@ -415,7 +421,7 @@ class EditStaffDialog(QDialog):
             "UPDATE staff SET name = ?, mobile = ?, email = ?, role = ?, salary = ?, joining_date = ?, address = ?, "
             "remark = ? Where id = ?",
             (self.name.text(), self.mobile.text(), self.email.text(), self.role.text(), self.salary.text(),
-             self.joining_date.text(), self.address.text(), self.remark.text(), self.staff_id)
+             self.joining_date.date().toString("dd-MM-yyyy"), self.address.text(), self.remark.text(), self.staff_id)
         )
         self.db_manager.connection.commit()
         self.populate_table()
