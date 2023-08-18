@@ -5,7 +5,7 @@ from PyQt6.QtCore import QDate
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
     QTableWidget, QTableWidgetItem, QComboBox, QLineEdit, QDialog, QGridLayout, QDialogButtonBox, QMessageBox, \
     QDateEdit, QAbstractItemView, QMenuBar, QToolBar
-from PyQt6.QtGui import QAction
+from PyQt6.QtGui import QAction, QIcon, QKeySequence
 
 
 class DatabaseManager:
@@ -67,35 +67,44 @@ class StaffManagementApp(QMainWindow):
         # create file menu
         file_menu = menu_bar.addMenu("File")
 
+        # Create the Toolbar
+        toolbar = self.addToolBar("Toolbar")
+        toolbar.setMovable(False)
+
         # Create Add action
-        add_action = QAction("Add Staff", self)
+        add_action = QAction(QIcon("icons/add.png"),"Add Staff", self)
         add_action.triggered.connect(self.add_staff)
+        toolbar.addAction(add_action)
         file_menu.addAction(add_action)
 
         # Create Edit action
-        edit_action = QAction("Edit Staff", self)
+        edit_action = QAction(QIcon("icons/edit.png"), "Edit Staff", self)
         edit_action.triggered.connect(self.edit_staff)
+        toolbar.addAction(edit_action)
         file_menu.addAction(edit_action)
 
         # Create Delete action
-        delete_action = QAction("Delete Staff", self)
+        delete_action = QAction(QIcon("icons/delete.png"), "Delete Staff", self)
         delete_action.triggered.connect(self.delete_staff)
+        toolbar.addAction(delete_action)
         file_menu.addAction(delete_action)
 
         # Create Search action
-        search_action = QAction("Search Staff", self)
+        toolbar.addSeparator()
+        search_action = QAction(QIcon("icons/search.png"), "Search Staff", self)
         search_action.triggered.connect(self.search_staff)
+        toolbar.addAction(search_action)
         file_menu.addAction(search_action)
 
-        # Create toolbar and toolbar items
-        toolbar = QToolBar()
-        toolbar.setMovable(True)
-        self.addToolBar(toolbar)
-        toolbar.addAction(add_action)
-        toolbar.addAction(edit_action)
-        toolbar.addAction(delete_action)
-        toolbar.addAction(search_action)
-
+        # Setting tooltips and shortcuts for actions
+        add_action.setToolTip("Add a new staff member")
+        edit_action.setToolTip("Edit staff member details")
+        delete_action.setToolTip("Delete selected staff member(s)")
+        search_action.setToolTip("Search for staff members")
+        add_action.setShortcut(QKeySequence.StandardKey.New)
+        edit_action.setShortcut(QKeySequence.StandardKey.Open)
+        delete_action.setShortcut(QKeySequence.StandardKey.Delete)
+        search_action.setShortcut(QKeySequence.StandardKey.Find)
 
         self.layout = QVBoxLayout()
 
@@ -118,11 +127,6 @@ class StaffManagementApp(QMainWindow):
         self.add_button = QPushButton("Add Staff")
         self.edit_button = QPushButton("Edit Staff")
         self.delete_button = QPushButton("Delete Staff")
-        # self.search_label = QLabel("Search by Role:")
-        # self.search_combo = QComboBox()
-        # self.search_combo.addItem("All")
-        # self.search_combo.addItem("Manager")
-        # self.search_combo.addItem("Employee")
         self.search_button = QPushButton("Search")
 
         # Connect button clicks to their respective methods
@@ -136,8 +140,6 @@ class StaffManagementApp(QMainWindow):
         button_layout.addWidget(self.add_button)
         button_layout.addWidget(self.edit_button)
         button_layout.addWidget(self.delete_button)
-        # button_layout.addWidget(self.search_label)
-        # button_layout.addWidget(self.search_combo)
         button_layout.addWidget(self.search_button)
 
         self.layout.addLayout(button_layout)
@@ -631,22 +633,6 @@ class SearchStaffDialog(QDialog):
 
             # Store the corresponding row data in the main table for each search result
             self.search_results_main_data.append(row_data)
-
-        # for id, name, mobile, email, role, salary, joining_date, address, remark in data:
-        #     row_num = self.search_results.rowCount()  # Get the next row index
-        #     self.search_results.insertRow(row_num)
-        #     self.search_results.setItem(row_num, 0, QTableWidgetItem(str(id)))
-        #     self.search_results.setItem(row_num, 1, QTableWidgetItem(name))
-        #     self.search_results.setItem(row_num, 2, QTableWidgetItem(mobile))
-        #     self.search_results.setItem(row_num, 3, QTableWidgetItem(email))
-        #     self.search_results.setItem(row_num, 4, QTableWidgetItem(role))
-        #     self.search_results.setItem(row_num, 5, QTableWidgetItem(str(salary)))
-        #     self.search_results.setItem(row_num, 6, QTableWidgetItem(joining_date))
-        #     self.search_results.setItem(row_num, 7, QTableWidgetItem(address))
-        #     self.search_results.setItem(row_num, 8, QTableWidgetItem(remark))
-        #
-        #     # Store the corresponding row number in the main table for each search result
-        #     self.search_results_main_data.append((id, name, mobile, email, role, salary, joining_date, address, remark))
 
 
 if __name__ == "__main__":
