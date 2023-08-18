@@ -23,8 +23,7 @@ class DatabaseManager:
                 salary REAL,
                 joining_date TEXT,
                 address TEXT,
-                remark TEXT,
-                deleted_at TEXT
+                remark TEXT
             )
         ''')
         self.connection.commit()
@@ -141,11 +140,11 @@ class StaffManagementApp(QMainWindow):
 
         # Check if specific data is provided, otherwise fetch all staff data from the database
         if data is None:
-            data = self.db_manager.fetch_all("SELECT * FROM staff WHERE deleted_at is NULL")
+            data = self.db_manager.fetch_all("SELECT * FROM staff")
             self.main_data_list = data  # Store main table data
 
         # Iterate through the data and populate the table rows
-        for row_num, (id, name, mobile, email, role, salary, joining_date, address, remark, deleted_at) in enumerate(data):
+        for row_num, (id, name, mobile, email, role, salary, joining_date, address, remark) in enumerate(data):
             self.table.insertRow(row_num)
             self.table.setItem(row_num, 0, QTableWidgetItem(str(id)))
             self.table.setItem(row_num, 1, QTableWidgetItem(name))
@@ -283,8 +282,7 @@ class AddStaffDialog(QDialog):
             return
 
         self.db_manager.execute(
-            "INSERT INTO staff (name, mobile, email, role, salary, joining_date, address, remark, deleted_at) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL)",
+            "INSERT INTO staff (name, mobile, email, role, salary, joining_date, address, remark) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (name, mobile, email, role, salary, joining_date, address, remark)
         )
         self.db_manager.connection.commit()
@@ -448,7 +446,7 @@ class DeleteStaffDialog(QDialog):
         self.staff_records_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.staff_records_table.setSelectionMode(QAbstractItemView.SelectionMode.MultiSelection)
 
-        self.staff_data = self.db_manager.fetch_all("SELECT * FROM staff WHERE deleted_at is NULL")
+        self.staff_data = self.db_manager.fetch_all("SELECT * FROM staff")
         self.populate_table(self.staff_data, self.staff_records_table)  # Populate the table with staff data
 
         button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Yes | QDialogButtonBox.StandardButton.No)
@@ -463,7 +461,7 @@ class DeleteStaffDialog(QDialog):
     def populate_table(self, data, table):
         table.setRowCount(0)  # Clear existing rows
 
-        for row_num, (id, name, mobile, email, role, salary, joining_date, address, remark, deleted_at) in enumerate(data):
+        for row_num, (id, name, mobile, email, role, salary, joining_date, address, remark) in enumerate(data):
             table.insertRow(row_num)
             table.setItem(row_num, 0, QTableWidgetItem(str(id)))
             table.setItem(row_num, 1, QTableWidgetItem(name))
@@ -485,7 +483,6 @@ class DeleteStaffDialog(QDialog):
 
     def delete_selected_staff_records(self):
         selected_rows = self.staff_records_table.selectionModel().selectedRows()
-        deletion_date = QDate.currentDate().toString("yyyy-MM-dd")
 
         if not selected_rows:
             return
@@ -496,9 +493,9 @@ class DeleteStaffDialog(QDialog):
 
         if selected_ids:
             for staff_id in selected_ids:
-                self.db_manager.execute("UPDATE staff SET deleted_at = ? Where id = ?",
-                                        (deletion_date, staff_id))
-            self.main_table_populate(self.db_manager.fetch_all("SELECT * FROM staff WHERE deleted_at is NULL"))  # Update main table
+                self.db_manager.execute("DELETE FROM staff WHERE id = ?", (staff_id,))
+            self.db_manager.connection.commit()
+            self.main_table_populate(self.db_manager.fetch_all("SELECT * FROM staff"))  # Update main table
             self.accept()
 
 
@@ -548,8 +545,7 @@ class SearchStaffDialog(QDialog):
         # Perform real-time search
         searched_name = text.strip()  # Remove leading/trailing whitespace
         if searched_name:
-            staff_data = self.db_manager.fetch_all("SELECT * FROM staff WHERE deleted_at is NULL AND "
-                                                   "name LIKE ?", (f"%{searched_name}%",))
+            staff_data = self.db_manager.fetch_all("SELECT * FROM staff WHERE name LIKE ?", (f"%{searched_name}%",))
             self.populate_search_table(staff_data)  # Populate search results table
             self.search_results.setHidden(False)
         else:
