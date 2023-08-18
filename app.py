@@ -4,7 +4,8 @@ import sqlite3
 from PyQt6.QtCore import QDate
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
     QTableWidget, QTableWidgetItem, QComboBox, QLineEdit, QDialog, QGridLayout, QDialogButtonBox, QMessageBox, \
-    QDateEdit, QAbstractItemView
+    QDateEdit, QAbstractItemView, QMenuBar, QToolBar
+from PyQt6.QtGui import QAction
 
 
 class DatabaseManager:
@@ -55,15 +56,52 @@ class StaffManagementApp(QMainWindow):
 
         # Set up the main window
         self.setWindowTitle("Staff Management System")
-        self.setGeometry(100, 100, 1000, 800)
+        self.setGeometry(100, 100, 1000, 1000)
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
+
+        # Create the Menu bar
+        menu_bar = self.menuBar()
+
+        # create file menu
+        file_menu = menu_bar.addMenu("File")
+
+        # Create Add action
+        add_action = QAction("Add Staff", self)
+        add_action.triggered.connect(self.add_staff)
+        file_menu.addAction(add_action)
+
+        # Create Edit action
+        edit_action = QAction("Edit Staff", self)
+        edit_action.triggered.connect(self.edit_staff)
+        file_menu.addAction(edit_action)
+
+        # Create Delete action
+        delete_action = QAction("Delete Staff", self)
+        delete_action.triggered.connect(self.delete_staff)
+        file_menu.addAction(delete_action)
+
+        # Create Search action
+        search_action = QAction("Search Staff", self)
+        search_action.triggered.connect(self.search_staff)
+        file_menu.addAction(search_action)
+
+        # Create toolbar and toolbar items
+        toolbar = QToolBar()
+        toolbar.setMovable(True)
+        self.addToolBar(toolbar)
+        toolbar.addAction(add_action)
+        toolbar.addAction(edit_action)
+        toolbar.addAction(delete_action)
+        toolbar.addAction(search_action)
+
 
         self.layout = QVBoxLayout()
 
         # Create a table to display staff data
         self.table = QTableWidget()
+        self.table.verticalHeader().setVisible(False)
         self.table.setColumnCount(9)  # Number of columns
         self.table.setHorizontalHeaderLabels(
             ["ID", "Name", "Mobile", "Email", "Role", "Salary", "Joining Date", "Address", "Remark"])
@@ -438,10 +476,12 @@ class DeleteStaffDialog(QDialog):
         self.main_table_populate = main_table_populate_callback
 
         self.setWindowTitle("Delete Staff Records")
+        self.setFixedSize(800, 400)
 
         delete_staff_layout = QVBoxLayout()
 
         self.staff_records_table = QTableWidget()
+        self.staff_records_table.verticalHeader().setVisible(False)
         self.staff_records_table.setColumnCount(10)  # Number of columns
         self.staff_records_table.setHorizontalHeaderLabels(
             ["ID", "Name", "Mobile", "Email", "Role", "Salary", "Joining Date", "Address", "Remark", "Select"])
@@ -523,6 +563,7 @@ class SearchStaffDialog(QDialog):
         self.name.textChanged.connect(self.perform_search)
 
         self.search_results = QTableWidget()
+        self.search_results.verticalHeader().setVisible(False)
         self.search_results.setColumnCount(9)
         self.search_results.setHorizontalHeaderLabels(
             ["ID", "Name", "Mobile", "Email", "Role", "Salary", "Joining Date", "Address", "Remark"])
