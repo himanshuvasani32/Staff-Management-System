@@ -1,10 +1,10 @@
 import sys
 import sqlite3
 
-from PyQt6.QtCore import QDate
+from PyQt6.QtCore import QDate, QFile
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, \
     QTableWidget, QTableWidgetItem, QComboBox, QLineEdit, QDialog, QGridLayout, QDialogButtonBox, QMessageBox, \
-    QDateEdit, QAbstractItemView, QMenuBar, QToolBar
+    QDateEdit, QAbstractItemView, QMenuBar, QToolBar, QSizePolicy
 from PyQt6.QtGui import QAction, QIcon, QKeySequence
 
 
@@ -60,6 +60,7 @@ class StaffManagementApp(QMainWindow):
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
+
 
         # Create the Menu bar
         menu_bar = self.menuBar()
@@ -129,22 +130,37 @@ class StaffManagementApp(QMainWindow):
         self.delete_button = QPushButton("Delete Staff")
         self.search_button = QPushButton("Search")
 
+        # Add style to the buttons
+        self.apply_button_style(self.add_button)
+        self.apply_button_style(self.edit_button)
+        self.apply_button_style(self.delete_button)
+        self.apply_button_style(self.search_button)
+
         # Connect button clicks to their respective methods
         self.add_button.clicked.connect(self.add_staff)
         self.edit_button.clicked.connect(self.edit_staff)
         self.delete_button.clicked.connect(self.delete_staff)
         self.search_button.clicked.connect(self.search_staff)
 
-        # Arrange buttons and search options in a layout
-        button_layout = QHBoxLayout()
-        button_layout.addWidget(self.add_button)
-        button_layout.addWidget(self.edit_button)
-        button_layout.addWidget(self.delete_button)
-        button_layout.addWidget(self.search_button)
+        # Layout for button placment
+        button_layout = QGridLayout()
+        button_layout.addWidget(self.add_button, 0, 0)
+        button_layout.addWidget(self.edit_button, 0, 1)
+        button_layout.addWidget(self.delete_button, 0, 2)
+        button_layout.addWidget(self.search_button, 0, 3)
+
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        button_layout.addWidget(spacer, 0, 4)
 
         self.layout.addLayout(button_layout)
 
         self.central_widget.setLayout(self.layout)
+
+    def apply_button_style(self, button):
+        button.setStyleSheet("QPushButton { background-color: #000000; color: white; border-radius: 5px; height: 25px; "
+                             "width: 100px; font-weight: bold; }"
+                             ":hover { background-color: #ffffff; color: #000000; }")
 
     def add_staff(self):
         dialog = AddStaffDialog(self.db_manager, self.populate_table)
